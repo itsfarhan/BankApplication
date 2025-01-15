@@ -7,17 +7,22 @@ import org.springframework.stereotype.Service;
 
 import com.farhan.secure_banking_app.entity.User;
 import com.farhan.secure_banking_app.repo.UserRepository;
+import com.farhan.secure_banking_app.dto.AccountInfo;
 import com.farhan.secure_banking_app.dto.BankResponse;
+import com.farhan.secure_banking_app.dto.EmailDetails;
 import com.farhan.secure_banking_app.dto.UserRequest;
 import com.farhan.secure_banking_app.utils.AccountUtils;
 
-import lombok.Builder;
+
 
 @Service
 public class UserServiceImpl implements UserService {
         
         @Autowired
-        private UserRepository userRepository;
+        UserRepository userRepository;
+
+        @Autowired
+        EmailService emailService;
 
         @Override
         public BankResponse createAccount(UserRequest userRequest) {
@@ -26,13 +31,13 @@ public class UserServiceImpl implements UserService {
              * Check if the user already has an account
              */
             if(userRepository.existsByEmail(userRequest.getEmail())) {
-                BankResponse response = BankResponse.builder()
+                return BankResponse.builder()
                         .responsecode(AccountUtils.ACCOUNT_EXIST_CODE)
                         .responseMessage(AccountUtils.ACCOUNT_EXIST_MESSAGE)
                         .accountInfo(null)
                         .build();
-                return response;
             }
+
                 User newUser = User.builder()
                         .firstName(userRequest.getFirstName())
                         .lastName(userRequest.getLastName())
@@ -46,6 +51,25 @@ public class UserServiceImpl implements UserService {
                         .phoneNumber(userRequest.getPhoneNumber())
                         .alternativePhoneNumber(userRequest.getAlternativePhoneNumber())
                         .status("ACTIVE")
+                        .build(); 
+
+                        User savedUser = userRepository.save(newUser);
+                        //Send email alert
+                        EmailDetails emailDetails = EmailDetails.builder()
+                                .recipient(savedUser.getEmail())
+                                .subject("ACCOUNT_CREATION")
+                                .messageBody("Congratulations " + savedUser.getFirstName() + " " + savedUser.getLastName() + " " + " your account has been created successfully. Your account number is " + savedUser.getAccountNumber())
+                                .build();
+                        emailService.sendEmailAlert(emailDetails);
+
+                        return BankResponse.builder()
+                        .responsecode(AccountUtils.ACCOUNT_CREATION_SUCCESS)
+                        .responseMessage(AccountUtils.ACCOUNT_CREATION_MESSAGE)
+                        .accountInfo(AccountInfo.builder()
+                                .accountBalance(savedUser.getAccountBalance())
+                                .accountNumber(savedUser.getAccountNumber())
+                                .accountName(savedUser.getFirstName() + " " + savedUser.getLastName() + " " + savedUser.getMiddleName()) 
+                                .build())
                         .build();
         }
 }

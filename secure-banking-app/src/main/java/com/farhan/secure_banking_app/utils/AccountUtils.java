@@ -7,6 +7,9 @@ public class AccountUtils {
     public static final String ACCOUNT_EXIST_CODE = "0001";
     public static final String ACCOUNT_EXIST_MESSAGE = "User already has an account";
 
+    public static final String ACCOUNT_CREATION_SUCCESS = "0002";
+    public static final String ACCOUNT_CREATION_MESSAGE = "Account has been successfully created";
+
     public static String generateAccountNumber() {
         /*
         * 2025 + randomSixDigitNumber
@@ -22,7 +25,7 @@ public class AccountUtils {
         StringBuilder accountNumber = new StringBuilder();
 
         accountNumber.append(year);
-        accountNumber.append(randomNumber);
+        accountNumber.append(randNumber);
         return accountNumber.toString();
     }
 }
