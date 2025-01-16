@@ -4,6 +4,7 @@ package com.farhan.secure_banking_app.services;
 import com.farhan.secure_banking_app.dto.BankResponse;
 import com.farhan.secure_banking_app.dto.CreditDebitRequest;
 import com.farhan.secure_banking_app.dto.EnquiryRequest;
+import com.farhan.secure_banking_app.dto.TransferRequest;
 import com.farhan.secure_banking_app.dto.UserRequest;
 
 public interface UserService {
@@ -12,4 +13,5 @@ public interface UserService {
     String nameEnquire(EnquiryRequest enquiryRequest);
     BankResponse creditAccount(CreditDebitRequest creditDebitRequest); 
     BankResponse debitAccount(CreditDebitRequest creditDebitRequest);
+    BankResponse transferAmount(TransferRequest transferRequest);
 }

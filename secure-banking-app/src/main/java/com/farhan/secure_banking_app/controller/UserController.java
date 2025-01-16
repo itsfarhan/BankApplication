@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.farhan.secure_banking_app.dto.BankResponse;
 import com.farhan.secure_banking_app.dto.CreditDebitRequest;
 import com.farhan.secure_banking_app.dto.EnquiryRequest;
+import com.farhan.secure_banking_app.dto.TransferRequest;
 import com.farhan.secure_banking_app.dto.UserRequest;
 import com.farhan.secure_banking_app.services.UserService;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
@@ -45,5 +45,10 @@ public class UserController {
     @PostMapping("/debitAccount")
     public BankResponse debitAccount(@RequestBody CreditDebitRequest creditDebitRequest){
         return userService.debitAccount(creditDebitRequest);
+    }
+
+    @PostMapping("/transferAmount")
+    public BankResponse transferAmount(@RequestBody TransferRequest transferRequest){
+        return userService.transferAmount(transferRequest);
     }
 }

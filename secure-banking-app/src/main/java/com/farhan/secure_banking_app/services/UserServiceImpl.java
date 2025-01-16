@@ -13,6 +13,7 @@ import com.farhan.secure_banking_app.dto.BankResponse;
 import com.farhan.secure_banking_app.dto.CreditDebitRequest;
 import com.farhan.secure_banking_app.dto.EmailDetails;
 import com.farhan.secure_banking_app.dto.EnquiryRequest;
+import com.farhan.secure_banking_app.dto.TransferRequest;
 import com.farhan.secure_banking_app.dto.UserRequest;
 import com.farhan.secure_banking_app.utils.AccountUtils;
 
@@ -99,8 +100,12 @@ public class UserServiceImpl implements UserService {
 
         @Override
         public String nameEnquire(EnquiryRequest enquiryRequest) {
-                // TODO Auto-generated method stub
-                return null;
+                boolean isAccountExist = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
+                if(!isAccountExist) {
+                        return AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE;
+                }
+                User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
+                return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getMiddleName();
         }
 
         @Override
@@ -137,9 +142,7 @@ public class UserServiceImpl implements UserService {
                                 .build();
                 }
                 User userToDebit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
-                BigInteger availableBalance = userToDebit.getAccountBalance().toBigInteger();
-                BigInteger debitAmount = creditDebitRequest.getAmount().toBigInteger();
-                if(availableBalance.intValue() < debitAmount.intValue()) { 
+                if(userToDebit.getAccountBalance().compareTo(creditDebitRequest.getAmount()) < 0) { 
                         return BankResponse.builder()
                                 .responsecode(AccountUtils.ACCOUNT_BALANCE_INSUFFICIENT_CODE)
                                 .responseMessage(AccountUtils.ACCOUNT_BALANCE_INSUFFICIENT_MESSAGE)
@@ -154,6 +157,54 @@ public class UserServiceImpl implements UserService {
                                 .accountBalance(userToDebit.getAccountBalance())
                                 .accountName(userToDebit.getFirstName() + " " + userToDebit.getLastName() + " " + userToDebit.getMiddleName())
                                 .accountNumber(userToDebit.getAccountNumber())
+                                .build())
+                        .build();
+        }
+
+        @Override
+        public BankResponse transferAmount(TransferRequest transferRequest) {
+                boolean isDestinationAccountExist = userRepository.existsByAccountNumber(transferRequest.getDestinationAccountNumber());
+                if(!isDestinationAccountExist) {
+                        return BankResponse.builder()
+                                .responsecode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                                .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                                .accountInfo(null)
+                                .build();
+                }
+                User sourceAccountUser = userRepository.findByAccountNumber(transferRequest.getSourceAccountNumber());
+                if(sourceAccountUser.getAccountBalance().compareTo(transferRequest.getAmount()) < 0) {
+                        return BankResponse.builder()
+                                .responsecode(AccountUtils.ACCOUNT_BALANCE_INSUFFICIENT_CODE)
+                                .responseMessage(AccountUtils.ACCOUNT_BALANCE_INSUFFICIENT_MESSAGE)
+                                .accountInfo(null)
+                                .build();
+                }
+                sourceAccountUser.setAccountBalance(sourceAccountUser.getAccountBalance().subtract(transferRequest.getAmount()));
+                userRepository.save(sourceAccountUser);
+                EmailDetails debitAlert = EmailDetails.builder()
+                        .recipient(sourceAccountUser.getEmail())
+                        .subject("DEBIT ALERT")
+                        .messageBody("Your account has been debited with " + transferRequest.getAmount() + " on " + java.time.LocalDateTime.now())
+                        .build();
+                emailService.sendEmailAlert(debitAlert);
+
+                User destinationAccountUser = userRepository.findByAccountNumber(transferRequest.getDestinationAccountNumber());
+                destinationAccountUser.setAccountBalance(destinationAccountUser.getAccountBalance().add(transferRequest.getAmount()));
+                userRepository.save(destinationAccountUser);
+                EmailDetails creditAlert = EmailDetails.builder()
+                        .recipient(destinationAccountUser.getEmail())
+                        .subject("CREDIT ALERT")
+                        .messageBody("Your account has been credited with " + transferRequest.getAmount() + " on " + java.time.LocalDateTime.now())
+                        .build();
+                emailService.sendEmailAlert(creditAlert);
+                
+                return BankResponse.builder()
+                        .responsecode(AccountUtils.ACCOUNT_TRANSFER_SUCCESS_CODE)
+                        .responseMessage(AccountUtils.ACCOUNT_TRANSFER_SUCCESS_MESSAGE)
+                        .accountInfo(AccountInfo.builder()
+                                .accountBalance(sourceAccountUser.getAccountBalance())
+                                .accountName(sourceAccountUser.getFirstName() + " " + sourceAccountUser.getLastName() + " " + sourceAccountUser.getMiddleName())
+                                .accountNumber(sourceAccountUser.getAccountNumber())
                                 .build())
                         .build();
         }
