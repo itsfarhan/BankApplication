@@ -15,36 +15,26 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "users")
-public class User {
-    
+@Table(name = "transactions")
+public class Transaction {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String firstName;
-    private String lastName;
-    private String middleName;
-    private String gender;
-    private String address;
-    private String country;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String transactionId;
+    private String transactionType;
+    private BigDecimal transactionAmount;
+    private String transactionStatus;
     private String accountNumber;
-    private BigDecimal accountBalance;
-    private String email;
-    private String phoneNumber;
-    private String alternativePhoneNumber;
-    private String status;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
-    private LocalDateTime modifiedAt;
+    private LocalDateTime modifiedAt;    
 }

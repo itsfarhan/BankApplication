@@ -13,6 +13,7 @@ import com.farhan.secure_banking_app.dto.BankResponse;
 import com.farhan.secure_banking_app.dto.CreditDebitRequest;
 import com.farhan.secure_banking_app.dto.EmailDetails;
 import com.farhan.secure_banking_app.dto.EnquiryRequest;
+import com.farhan.secure_banking_app.dto.TransactionDTO;
 import com.farhan.secure_banking_app.dto.TransferRequest;
 import com.farhan.secure_banking_app.dto.UserRequest;
 import com.farhan.secure_banking_app.utils.AccountUtils;
@@ -25,6 +26,7 @@ public class UserServiceImpl implements UserService {
 
         @Autowired
         EmailService emailService;
+        TransactionService transactionService;
 
         @Override
         public BankResponse createAccount(UserRequest userRequest) {
@@ -54,23 +56,22 @@ public class UserServiceImpl implements UserService {
                         .alternativePhoneNumber(userRequest.getAlternativePhoneNumber())
                         .status("ACTIVE")
                         .build(); 
-
-                User savedUser = userRepository.save(newUser);
+                userRepository.save(newUser);
                 //Send email alert
                 EmailDetails emailDetails = EmailDetails.builder()
-                        .recipient(savedUser.getEmail())
+                        .recipient(newUser.getEmail())
                         .subject("ACCOUNT_CREATION")
-                        .messageBody("Congratulations " + savedUser.getFirstName() + " " + savedUser.getLastName() + " " + " your account has been created successfully. Your account number is " + savedUser.getAccountNumber())
-                        .build();
-                        
+                        .messageBody("Your account has been created successfully with account number " + newUser.getAccountNumber() + " on " + java.time.LocalDateTime.now())
+                        .build();       
                 emailService.sendEmailAlert(emailDetails);
+                
                 return BankResponse.builder()
                         .responsecode(AccountUtils.ACCOUNT_CREATION_SUCCESS)
                         .responseMessage(AccountUtils.ACCOUNT_CREATION_MESSAGE)
                         .accountInfo(AccountInfo.builder()
-                                .accountBalance(savedUser.getAccountBalance())
-                                .accountNumber(savedUser.getAccountNumber())
-                                .accountName(savedUser.getFirstName() + " " + savedUser.getLastName() + " " + savedUser.getMiddleName()) 
+                                .accountBalance(newUser.getAccountBalance())
+                                .accountName(newUser.getFirstName() + " " + newUser.getLastName() + " " + newUser.getMiddleName())
+                                .accountNumber(newUser.getAccountNumber())
                                 .build())
                 .build();
         }
@@ -120,6 +121,17 @@ public class UserServiceImpl implements UserService {
                 }
                 User userToCredit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
                 userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(creditDebitRequest.getAmount()));
+                userRepository.save(userToCredit);
+
+                TransactionDTO transactionDTO = TransactionDTO.builder()
+                .transactionType("CREDIT")
+                .transactionAmount(creditDebitRequest.getAmount())
+                .accountNumber(userToCredit.getAccountNumber())
+                .transactionStatus("SUCCESS")
+                .build();
+        
+        transactionService.saveTransaction(transactionDTO);
+
                 return BankResponse.builder()
                         .responsecode(AccountUtils.ACCOUNT_CREDITED_SUCCESS)
                         .responseMessage(AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE)
@@ -150,6 +162,17 @@ public class UserServiceImpl implements UserService {
                                 .build();
                 }
                 userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(creditDebitRequest.getAmount()));
+                userRepository.save(userToDebit);
+
+                TransactionDTO transactionDTO = TransactionDTO.builder()
+                .transactionType("CREDIT")
+                .transactionAmount(creditDebitRequest.getAmount())
+                .accountNumber(userToDebit.getAccountNumber())
+                .transactionStatus("SUCCESS")
+                .build();
+        
+                transactionService.saveTransaction(transactionDTO);
+
                 return BankResponse.builder()
                         .responsecode(AccountUtils.ACCOUNT_DEBITED_SUCCESS)
                         .responseMessage(AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE)
@@ -197,6 +220,15 @@ public class UserServiceImpl implements UserService {
                         .messageBody("Your account has been credited with " + transferRequest.getAmount() + " on " + java.time.LocalDateTime.now())
                         .build();
                 emailService.sendEmailAlert(creditAlert);
+
+                TransactionDTO transactionDTO = TransactionDTO.builder()
+                .transactionType("CREDIT")
+                .transactionAmount(transferRequest.getAmount())
+                .accountNumber(sourceAccountUser.getAccountNumber())
+                .transactionStatus("SUCCESS")
+                .build();
+        
+                transactionService.saveTransaction(transactionDTO);
                 
                 return BankResponse.builder()
                         .responsecode(AccountUtils.ACCOUNT_TRANSFER_SUCCESS_CODE)
@@ -208,4 +240,6 @@ public class UserServiceImpl implements UserService {
                                 .build())
                         .build();
         }
+
+
 }
