@@ -27,7 +27,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "users")
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,6 +40,7 @@ public class User {
     private String accountNumber;
     private BigDecimal accountBalance;
     private String email;
+    private String password;
     private String phoneNumber;
     private String alternativePhoneNumber;
     private String status;

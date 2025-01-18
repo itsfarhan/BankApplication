@@ -16,7 +16,7 @@ public class AccountInfo {
 
     @Schema(name = "Account Number")
     private String accountNumber;
-    
+
     @Schema(name = "Account Balance")
     private BigDecimal accountBalance;
 

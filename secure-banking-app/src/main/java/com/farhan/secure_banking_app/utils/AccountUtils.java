@@ -27,12 +27,11 @@ public class AccountUtils {
 
     public static final String ACCOUNT_TRANSFER_SUCCESS_CODE = "0008";
     public static final String ACCOUNT_TRANSFER_SUCCESS_MESSAGE = "Amount has been transferred";
-    
 
     public static String generateAccountNumber() {
         /*
-        * 2025 + randomSixDigitNumber
-        */
+         * 2025 + randomSixDigitNumber
+         */
 
         Year currentYear = Year.now();
 

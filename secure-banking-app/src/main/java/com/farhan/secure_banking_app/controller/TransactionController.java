@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.farhan.secure_banking_app.services.BankStatement;
 import com.farhan.secure_banking_app.entity.Transaction;
- 
+
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -20,9 +20,9 @@ public class TransactionController {
 
     @GetMapping("/transactions")
     public List<Transaction> getTransactions(
-    @RequestParam String accountNumber,
-    @RequestParam String startDate,
-    @RequestParam String endDate) {
+            @RequestParam String accountNumber,
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
         return bankStatement.getTransactions(accountNumber, startDate, endDate);
     }
 }

@@ -4,4 +4,5 @@ import com.farhan.secure_banking_app.dto.EmailDetails;
 
 public interface EmailService {
     void sendEmailAlert(EmailDetails emailDetails);
+    void sendEmailWithAttachment(EmailDetails emailDetails);
 }

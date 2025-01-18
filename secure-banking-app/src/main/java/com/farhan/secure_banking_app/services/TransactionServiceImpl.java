@@ -9,10 +9,10 @@ import com.farhan.secure_banking_app.repo.TransactionRepo;
 
 @Component
 public class TransactionServiceImpl implements TransactionService {
-    
+
     @Autowired
     TransactionRepo transactionRepo;
-    
+
     @Override
     public void saveTransaction(TransactionDTO transactionDTO) {
         Transaction transaction = Transaction.builder()
@@ -23,5 +23,5 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
         transactionRepo.save(transaction);
     }
-    
+
 }

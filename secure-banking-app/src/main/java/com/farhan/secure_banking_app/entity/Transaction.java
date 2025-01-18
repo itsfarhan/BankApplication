@@ -36,5 +36,5 @@ public class Transaction {
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
-    private LocalDateTime modifiedAt;    
+    private LocalDateTime modifiedAt;
 }
